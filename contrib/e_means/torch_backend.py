@@ -511,6 +511,15 @@ class CuteBackend(TritonBackend):
             self.cache.centroids, self.cache.padded_norms.view(-1), binding.row_norms, self.cache.spherical)
         return accumulate_removal(rows, labels, *args, refine=refine, **kwargs)
 
+    def complete_second(self, rows, labels, second):
+        from .triton_assignment import complete_second
+
+        binding = self.cache.bindings.get((len(rows), "second"))
+        if binding is not None and binding.codes is not None and binding.row_norms is not None:
+            refine = (self.cache.centroids, self.cache.padded_norms.view(-1)[:self.cache.num_centroids],
+                      binding.row_norms, self.cache.spherical)
+            complete_second(rows, labels, second, refine)
+
     def capture_state(self):
         state = self.cache
         if state is not None:
